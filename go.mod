@@ -1,4 +1,4 @@
-module corelush
+module github.com/LUSHDigital/core-lush
 
 go 1.13
 

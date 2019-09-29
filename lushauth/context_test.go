@@ -2,9 +2,9 @@ package lushauth_test
 
 import (
 	"context"
-	"corelush/lushauth"
 	"testing"
 
+	"github.com/LUSHDigital/core-lush/lushauth"
 	"github.com/LUSHDigital/core/test"
 )
 
