@@ -1,9 +1,10 @@
 package lushauth_test
 
 import (
-	"corelush/lushauth"
 	"crypto/rsa"
 	"testing"
+
+	"github.com/LUSHDigital/core-lush/lushauth"
 
 	"github.com/LUSHDigital/core/test"
 	jwt "github.com/dgrijalva/jwt-go"

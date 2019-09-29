@@ -1,7 +1,6 @@
 package lushauth_test
 
 import (
-	"corelush/lushauth"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
@@ -9,6 +8,8 @@ import (
 	"os"
 	"testing"
 	"time"
+
+	"github.com/LUSHDigital/core-lush/lushauth"
 )
 
 var (

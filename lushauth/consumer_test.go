@@ -1,9 +1,10 @@
 package lushauth_test
 
 import (
-	"corelush/lushauth"
 	"fmt"
 	"testing"
+
+	"github.com/LUSHDigital/core-lush/lushauth"
 
 	"github.com/LUSHDigital/core/test"
 	"github.com/LUSHDigital/uuid"
