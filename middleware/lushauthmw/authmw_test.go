@@ -128,7 +128,7 @@ func ExampleNewUnaryServerInterceptor() {
 	log.Fatalln(srv.Serve(l))
 }
 
-func ExampleHandlerValidateJWT() {
+func ExampleJWTHandler() {
 	http.Handle("/users", lushauthmw.JWTHandler(broker, func(w http.ResponseWriter, r *http.Request) {
 		consumer := lushauth.ConsumerFromContext(r.Context())
 		if !consumer.HasAnyGrant("users.read") {
