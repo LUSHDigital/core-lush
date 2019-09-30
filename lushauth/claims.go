@@ -1,13 +1,33 @@
 package lushauth
 
 import (
-	"crypto/rsa"
+	"crypto"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/LUSHDigital/uuid"
+
 	jwt "github.com/dgrijalva/jwt-go"
 )
+
+// NewClaimsForConsumer spawns new claims for
+func NewClaimsForConsumer(issuer string, consumer Consumer) (Claims, error) {
+	var c Claims
+	now := TimeFunc()
+	id, err := uuid.NewV4()
+	if err != nil {
+		return c, err
+	}
+	return Claims{
+		ID:        id.String(),
+		Issuer:    issuer,
+		ExpiresAt: now.Add(DefaultValidPeriod).Unix(),
+		IssuedAt:  now.Unix(),
+		NotBefore: now.Unix(),
+		Consumer:  consumer,
+	}, nil
+}
 
 const (
 	// JWTValidationErrorExpired happens when EXP validation failed
@@ -57,7 +77,7 @@ func (e JWTVerificationError) Error() string {
 }
 
 // RSAKeyFunc is used with the jwt-go library to validate that a token is using the correct signing algorithm.
-func RSAKeyFunc(pk *rsa.PublicKey) func(token *jwt.Token) (interface{}, error) {
+func RSAKeyFunc(pk crypto.PublicKey) jwt.Keyfunc {
 	return func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return pk, JWTSigningMethodError{token.Header["alg"]}

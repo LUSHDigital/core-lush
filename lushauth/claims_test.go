@@ -17,6 +17,14 @@ func must(s string, err error) string {
 	return s
 }
 
+func TestNewClaimsForConsumer(t *testing.T) {
+	c, err := lushauth.NewClaimsForConsumer("Test", consumer)
+	if err != nil {
+		t.Fatal(err)
+	}
+	test.Equals(t, c.Consumer.UUID, consumer.UUID)
+}
+
 func TestClaims_Valid(t *testing.T) {
 	type Test struct {
 		name        string
