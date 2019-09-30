@@ -12,3 +12,10 @@ server := grpc.NewServer(
     ),
 )
 ```
+
+### Attach auth middleware to gorilla mux router
+
+```go
+middleware := lushauthmw.JWTMiddleware(broker)
+router.Use(middleware)
+```

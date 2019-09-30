@@ -9,13 +9,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/LUSHDigital/core/auth/authmock"
-	"github.com/LUSHDigital/uuid"
-	jwt "github.com/dgrijalva/jwt-go"
-
 	"github.com/LUSHDigital/core-lush/lushauth"
 	"github.com/LUSHDigital/core-lush/middleware/lushauthmw"
 	"github.com/LUSHDigital/core/auth"
+	"github.com/LUSHDigital/core/auth/authmock"
+	"github.com/LUSHDigital/uuid"
+	jwt "github.com/dgrijalva/jwt-go"
 	"google.golang.org/grpc"
 )
 
@@ -28,7 +27,15 @@ var (
 	now, then, at                                                                        time.Time
 	validClaims, otherClaims, invalidClaims, expiredClaims, futureClaims, unissuedClaims lushauth.Claims
 	validToken, otherToken, invalidToken, expiredToken, futureToken, unissuedToken       string
+
+	router = &Mux{}
 )
+
+type Mux struct{}
+
+func (m *Mux) Use(...lushauthmw.MiddlewareFunc) {
+	// no-op
+}
 
 func mustIssue(s string, err error) string {
 	if err != nil {
@@ -135,4 +142,9 @@ func ExampleJWTHandler() {
 			http.Error(w, "access denied", http.StatusUnauthorized)
 		}
 	}))
+}
+
+func ExampleJWTMiddleware() {
+	middleware := lushauthmw.JWTMiddleware(broker)
+	router.Use(middleware)
 }
