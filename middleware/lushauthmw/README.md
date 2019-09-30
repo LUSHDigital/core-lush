@@ -1,5 +1,5 @@
 # Auth Middleware
-The package `core-lush/middleware/authmw` is used to attach authentication information to requests and responses for REST and gRPC. To learn more about how to use auth inside of your application you should read the [documentation for the **core-lush/lushauth** package](https://github.com/LUSHDigital/core-lush/tree/master/lushauth#auth).
+The package `core-lush/middleware/lushauthmw` is used to attach authentication information to requests and responses for REST and gRPC. To learn more about how to use auth inside of your application you should read the [documentation for the **core-lush/lushauth** package](https://github.com/LUSHDigital/core-lush/tree/master/lushauth#auth).
 
 ## Examples
 
@@ -8,7 +8,7 @@ The package `core-lush/middleware/authmw` is used to attach authentication infor
 ```go
 server := grpc.NewServer(
     middleware.WithUnaryServerChain(
-        authmw.NewUnaryServerInterceptor(broker),
+        lushauthmw.NewUnaryServerInterceptor(broker),
     ),
 )
 ```
