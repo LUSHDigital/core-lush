@@ -1,5 +1,5 @@
 # Log
-The `core-lush/lushlogs` package is used to provide default logging configuration.
+The `core-lush/lushlog` package is used to provide default logging configuration.
 
 ```go
 // The lushlog package configures the logging output using import side-effects.
