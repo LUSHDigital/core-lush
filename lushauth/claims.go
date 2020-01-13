@@ -168,12 +168,12 @@ func (c *Claims) VerifyNotBefore(now time.Time) bool {
 // https://tools.ietf.org/html/rfc7519#section-4.1
 //
 // The difference between RefreshableClaims and Claims is that this struct
-// will not attempt to validate wether or not the token is expired.
+// will not attempt to validate whether or not the token is expired.
 type RefreshableClaims struct {
 	Claims
 }
 
-// Valid verifys time based claims (IAT, NBF) as well as the identifiers (ISS, JTI).
+// Valid verifies time based claims (IAT, NBF) as well as the identifiers (ISS, JTI).
 func (c *RefreshableClaims) Valid() error {
 	now := TimeFunc()
 	errors := c.verify(now, uint32(0))
