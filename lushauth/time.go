@@ -10,5 +10,5 @@ var (
 	TimeFunc = time.Now
 
 	// DefaultValidPeriod is the period a set of claims are valid.
-	DefaultValidPeriod time.Duration = 60 * time.Minute
+	DefaultValidPeriod = 60 * time.Minute
 )

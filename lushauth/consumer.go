@@ -12,8 +12,8 @@ type Consumer struct {
 	LastName string `json:"last_name"`
 	// Language is the preferred language of a user.
 	Language string `json:"language"`
-	// Grants are any specific given permissions for a user.
-	// e.g. products.create, pages.read or  tills.close
+	// Grants are any specific, given permissions for a user.
+	// e.g. products.create, pages.read or tills.close
 	Grants []string `json:"grants"`
 	// Roles are what purpose a user server within the context of LUSH
 	// e.g. guest, staff, creator or admin
@@ -21,6 +21,15 @@ type Consumer struct {
 	// Needs are things that the user needs to do and that a front-end can react to.
 	// e.g. password_reset, confirm_email or accept_terms
 	Needs []string `json:"needs"`
+	// Markets the user belongs to.
+	// e.g. "gb", "de", etc...
+	Markets []Market `json:"markets"`
+}
+
+// Market represents a market attached to an API user.
+type Market struct {
+	ID    string   `json:"id"`
+	Roles []string `json:"roles"`
 }
 
 // HasAnyGrant checks if a consumer possess any of a given set of grants
@@ -63,6 +72,16 @@ func (c *Consumer) HasUUID(id string) bool {
 	return c.UUID == id
 }
 
+// HasAnyMarketRole checks if a user has any role in a given market.
+func (c Consumer) HasAnyMarketRole(id string, roles ...string) bool {
+	for _, m := range c.Markets {
+		if m.ID == id {
+			return hasAny(m.Roles, roles...)
+		}
+	}
+	return false
+}
+
 // hasAny checks if a set contains any of the given members.
 func hasAny(set []string, members ...string) bool {
 	for _, member := range members {
@@ -75,7 +94,7 @@ func hasAny(set []string, members ...string) bool {
 	return false
 }
 
-// hasNoMatching checks if a set does not contain any and all of the given members.
+// hasNoMatching checks if a set does not contain any and all the given members.
 func hasNoMatching(set []string, members ...string) bool {
 	for _, member := range members {
 		for _, m := range set {
