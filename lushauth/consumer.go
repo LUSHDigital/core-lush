@@ -12,8 +12,8 @@ type Consumer struct {
 	LastName string `json:"last_name"`
 	// Language is the preferred language of a user.
 	Language string `json:"language"`
-	// Grants are any specific given permissions for a user.
-	// e.g. products.create, pages.read or  tills.close
+	// Grants are any specific, given permissions for a user.
+	// e.g. products.create, pages.read or tills.close
 	Grants []string `json:"grants"`
 	// Roles are what purpose a user server within the context of LUSH
 	// e.g. guest, staff, creator or admin
@@ -94,7 +94,7 @@ func hasAny(set []string, members ...string) bool {
 	return false
 }
 
-// hasNoMatching checks if a set does not contain any and all of the given members.
+// hasNoMatching checks if a set does not contain any and all the given members.
 func hasNoMatching(set []string, members ...string) bool {
 	for _, member := range members {
 		for _, m := range set {

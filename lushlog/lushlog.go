@@ -9,6 +9,6 @@ const (
 )
 
 func init() {
-	// Setup logs as part of import side-effect.
+	// Setup logs as part of import side effect.
 	log.SetFlags(flags)
 }

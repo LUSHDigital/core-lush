@@ -18,22 +18,22 @@ type hasAnyTest struct {
 
 func hasAnyCases(kind string) []hasAnyTest {
 	return []hasAnyTest{
-		hasAnyTest{
+		{
 			name:     fmt.Sprintf("when using one %s that exists", kind),
 			values:   []string{"test.foo"},
 			expected: true,
 		},
-		hasAnyTest{
+		{
 			name:     fmt.Sprintf("when using two %ss where one does not exist", kind),
 			values:   []string{"test.foo", "doesnot.exist"},
 			expected: true,
 		},
-		hasAnyTest{
+		{
 			name:     fmt.Sprintf("when using one %s that does not exist", kind),
 			values:   []string{"doesnot.exist"},
 			expected: false,
 		},
-		hasAnyTest{
+		{
 			name:     fmt.Sprintf("when using two %ss that does not exist", kind),
 			values:   []string{"doesnot.exist", "has.no.access"},
 			expected: false,

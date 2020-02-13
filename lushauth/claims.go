@@ -86,8 +86,8 @@ func RSAKeyFunc(pk crypto.PublicKey) jwt.Keyfunc {
 	}
 }
 
-// Claims hold information of the power exherted by a JWT.
-// Structured version of Claims Section, as referenced at
+// Claims hold information of the power exerted by a JWT.
+// A structured version of the Claims section, as referenced at
 // https://tools.ietf.org/html/rfc7519#section-4.1
 type Claims struct {
 	ID       string `json:"jti,omitempty"`
@@ -163,12 +163,12 @@ func (c *Claims) VerifyNotBefore(now time.Time) bool {
 	return now.Unix() >= c.NotBefore
 }
 
-// RefreshableClaims hold information of the power exherted by a JWT.
-// Structured version of Claims Section, as referenced at
+// RefreshableClaims hold information of the power exerted by a JWT.
+// A structured version of the Claims section, as referenced at
 // https://tools.ietf.org/html/rfc7519#section-4.1
 //
 // The difference between RefreshableClaims and Claims is that this struct
-// will not attempt to validate whether or not the token is expired.
+// will not attempt to validate whether the token is expired.
 type RefreshableClaims struct {
 	Claims
 }
