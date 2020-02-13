@@ -102,3 +102,30 @@ func TestConsumer_HasUUID(t *testing.T) {
 		test.Equals(t, false, consumer.HasUUID(id2))
 	})
 }
+
+func TestConsumer_HasAnyMarketRole(t *testing.T) {
+	consumer := &lushauth.Consumer{
+		Markets: []lushauth.Market{
+			{
+				ID:    "gb",
+				Roles: []string{"one", "two"},
+			},
+			{
+				ID:    "fr",
+				Roles: []string{"three", "four"},
+			},
+		},
+	}
+	t.Run("when user has role in 'gb' market", func(t *testing.T) {
+		test.Equals(t, true, consumer.HasAnyMarketRole("gb", "one"))
+	})
+	t.Run("when user doesn't have role in 'fr' market", func(t *testing.T) {
+		test.Equals(t, false, consumer.HasAnyMarketRole("fr", "one"))
+	})
+	t.Run("when user has role in 'fr' market", func(t *testing.T) {
+		test.Equals(t, true, consumer.HasAnyMarketRole("fr", "four", "five"))
+	})
+	t.Run("when user doesn't belong to the market at all", func(t *testing.T) {
+		test.Equals(t, false, consumer.HasAnyMarketRole("se", "two"))
+	})
+}

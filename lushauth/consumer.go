@@ -21,6 +21,15 @@ type Consumer struct {
 	// Needs are things that the user needs to do and that a front-end can react to.
 	// e.g. password_reset, confirm_email or accept_terms
 	Needs []string `json:"needs"`
+	// Markets the user belongs to.
+	// e.g. "gb", "de", etc...
+	Markets []Market `json:"markets"`
+}
+
+// Market represents a market attached to an API user.
+type Market struct {
+	ID    string   `json:"id"`
+	Roles []string `json:"roles"`
 }
 
 // HasAnyGrant checks if a consumer possess any of a given set of grants
@@ -61,6 +70,16 @@ func (c *Consumer) IsUser(userID int64) bool {
 // HasUUID checks if a consumer has the same uuid as a user
 func (c *Consumer) HasUUID(id string) bool {
 	return c.UUID == id
+}
+
+// HasAnyMarketRole checks if a user has any role in a given market.
+func (c Consumer) HasAnyMarketRole(id string, roles ...string) bool {
+	for _, m := range c.Markets {
+		if m.ID == id {
+			return hasAny(m.Roles, roles...)
+		}
+	}
+	return false
 }
 
 // hasAny checks if a set contains any of the given members.
