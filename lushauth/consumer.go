@@ -63,13 +63,13 @@ func (c *Consumer) HasNoMatchingNeed(needs ...string) bool {
 }
 
 // IsUser checks if a consumer has the same ID as a user
-func (c *Consumer) IsUser(userID int64) bool {
-	return c.ID == userID
+func (c *Consumer) IsUser(id int64) bool {
+	return c.ID == id
 }
 
-// HasUUID checks if a consumer has the same uuid as a user
-func (c *Consumer) HasUUID(id string) bool {
-	return c.UUID == id
+// HasAnyUUID checks if a consumer has the same uuid as a user
+func (c *Consumer) HasAnyUUID(ids ...string) bool {
+	return hasAny([]string{c.UUID}, ids...)
 }
 
 // HasAnyMarketRole checks if a user has any role in a given market.

@@ -96,10 +96,10 @@ func TestConsumer_HasUUID(t *testing.T) {
 		UUID: id1,
 	}
 	t.Run("when its the same user", func(t *testing.T) {
-		test.Equals(t, true, consumer.HasUUID(id1))
+		test.Equals(t, true, consumer.HasAnyUUID(id1))
 	})
 	t.Run("when its not the same user", func(t *testing.T) {
-		test.Equals(t, false, consumer.HasUUID(id2))
+		test.Equals(t, false, consumer.HasAnyUUID(id2))
 	})
 }
 
