@@ -87,7 +87,7 @@ if found {
 ```
 
 ### Locator Interface
-If you want to implement the locator in your own errors, please conform to the locator interface.
+Implement the [`Locator`](#locator-interface) interface on an error type to return its caller frame to be used in conjunction with the `lusherr` package and associated tooling.
 
 ```go
 type Locator interface {
@@ -95,18 +95,22 @@ type Locator interface {
 }
 ```
 
-## Originate
-If you have an error that does not implement the `lusherr.Locator` interface, you can call `lusherr.Originate` to wrap it in an error containing the frame of the caller.
+## Pin
+Call `Pin` to wrap an error with information about the caller frame of where `Pin` was invoked for an error that does not already carry a caller frame. The resulting error can be cast to [`Locate`](#locator-interface).
 
 ```go
-return lusherr.Originate(fmt.Errorf("something went wrong"))
+func UploadToBucket(w io.Writer) error {
+    if err := upload(w); err != nil {
+        return lusherr.Pin(err)
+    }
+}
 ```
 
-## Originator Interface
-To prevent errors that already implement its own locator, you can implement the originator interface to make sure `lusherr.Originate` does not add an extra wrapping layer around your error.
+## Pinner Interface
+Implement the [`Pinner`](#pinner-interface) interface on an error type to prevent errors that already implements [`Locator`](#locator-interface) to be wrapped multiple times.
 
 ```go
-type Originator interface {
-    Originate(runtime.Frame) error
+type Pinner interface {
+    Pin(runtime.Frame) error
 }
 ```

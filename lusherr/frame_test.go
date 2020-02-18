@@ -34,8 +34,8 @@ func TestLocate(t *testing.T) {
 	}
 	cases := []Test{
 		{
-			name:   "with re-originated inline error",
-			err:    lusherr.Originate(fmt.Errorf("inline error")),
+			name:   "with re-pinned inline error",
+			err:    lusherr.Pin(fmt.Errorf("inline error")),
 			expect: true,
 			expected: runtime.Frame{
 				Line:     38,
@@ -44,8 +44,8 @@ func TestLocate(t *testing.T) {
 			},
 		},
 		{
-			name:   "with re-originated typed error",
-			err:    lusherr.Originate(internal),
+			name:   "with re-pinned typed error",
+			err:    lusherr.Pin(internal),
 			expect: true,
 			expected: runtime.Frame{
 				Line:     48,

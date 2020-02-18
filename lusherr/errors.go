@@ -38,8 +38,8 @@ func (e InternalError) Locate() runtime.Frame {
 	return e.frame
 }
 
-// Originate the error from a frame.
-func (e InternalError) Originate(frame runtime.Frame) error {
+// Pin the error to a caller frame.
+func (e InternalError) Pin(frame runtime.Frame) error {
 	e.frame = frame
 	return e
 }
@@ -77,8 +77,8 @@ func (e UnauthorizedError) Locate() runtime.Frame {
 	return e.frame
 }
 
-// Originate the error from a frame.
-func (e UnauthorizedError) Originate(frame runtime.Frame) error {
+// Pin the error to a caller frame.
+func (e UnauthorizedError) Pin(frame runtime.Frame) error {
 	e.frame = frame
 	return e
 }
@@ -119,8 +119,8 @@ func (e ValidationError) Locate() runtime.Frame {
 	return e.frame
 }
 
-// Originate the error from a frame.
-func (e ValidationError) Originate(frame runtime.Frame) error {
+// Pin the error to a caller frame.
+func (e ValidationError) Pin(frame runtime.Frame) error {
 	e.frame = frame
 	return e
 }
@@ -160,8 +160,8 @@ func (e DatabaseQueryError) Locate() runtime.Frame {
 	return e.frame
 }
 
-// Originate the error from a frame.
-func (e DatabaseQueryError) Originate(frame runtime.Frame) error {
+// Pin the error to a caller frame.
+func (e DatabaseQueryError) Pin(frame runtime.Frame) error {
 	e.frame = frame
 	return e
 }
@@ -203,8 +203,8 @@ func (e NotFoundError) Locate() runtime.Frame {
 	return e.frame
 }
 
-// Originate the error from a frame.
-func (e NotFoundError) Originate(frame runtime.Frame) error {
+// Pin the error to a caller frame.
+func (e NotFoundError) Pin(frame runtime.Frame) error {
 	e.frame = frame
 	return e
 }
@@ -242,8 +242,8 @@ func (e NotAllowedError) Locate() runtime.Frame {
 	return e.frame
 }
 
-// Originate the error from a frame.
-func (e NotAllowedError) Originate(frame runtime.Frame) error {
+// Pin the error to a caller frame.
+func (e NotAllowedError) Pin(frame runtime.Frame) error {
 	e.frame = frame
 	return e
 }

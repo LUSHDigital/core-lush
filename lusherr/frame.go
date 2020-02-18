@@ -21,8 +21,8 @@ func (e originError) Locate() runtime.Frame {
 	return e.frame
 }
 
-// Originate the error from a frame.
-func (e originError) Originate(frame runtime.Frame) error {
+// Pin an error to a caller frame.
+func (e originError) Pin(frame runtime.Frame) error {
 	e.frame = frame
 	return e
 }
@@ -46,16 +46,16 @@ func Locate(err error) (runtime.Frame, bool) {
 	return frame, false
 }
 
-// Originator defines behavior for defining an origin frame for an error.
-type Originator interface {
-	Originate(runtime.Frame) error
+// Pinner defines behavior for defining an origin frame for an error.
+type Pinner interface {
+	Pin(runtime.Frame) error
 }
 
-// Originate attempts to originate an error from the callers location.
-func Originate(err error) error {
+// Pin an error to its caller frame to carry the location in code where the error occurred.
+func Pin(err error) error {
 	switch err := err.(type) {
-	case Originator:
-		return err.Originate(frame(1))
+	case Pinner:
+		return err.Pin(frame(1))
 	default:
 		return originError{
 			err:   err,
