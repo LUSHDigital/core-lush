@@ -16,6 +16,11 @@ func (e originError) Error() string {
 	return fmt.Sprintf("%v", e.err)
 }
 
+// Unwrap the inner error.
+func (e originError) Unwrap() error {
+	return e.err
+}
+
 // Locate the frame of the error.
 func (e originError) Locate() runtime.Frame {
 	return e.frame
