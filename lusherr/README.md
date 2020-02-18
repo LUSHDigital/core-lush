@@ -106,7 +106,7 @@ func UploadToBucket(w io.Writer) error {
 }
 ```
 
-## Pinner Interface
+### Pinner Interface
 Implement the [`Pinner`](#pinner-interface) interface on an error type to prevent errors that already implements [`Locator`](#locator-interface) to be wrapped multiple times.
 
 ```go
