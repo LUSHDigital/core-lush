@@ -34,7 +34,7 @@ func (n *Int64) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-// Scan for Int64
+// Scan implements the Scanner interface from database/sql
 func (n *Int64) Scan(src interface{}) error {
 	// Set initial state for subsequent scans.
 	n.Valid = false

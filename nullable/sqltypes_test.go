@@ -879,7 +879,7 @@ func TestNullFloat64_MarshalJSON(t *testing.T) {
 
 func TestToNullBool(t *testing.T) {
 	b := true
-	bb := ToBool(&b)
+	bb := MakeBool(&b)
 	if !bb.Valid {
 		t.Errorf("expected valid, got %v", bb.Valid)
 	}
@@ -888,7 +888,7 @@ func TestToNullBool(t *testing.T) {
 	}
 
 	var b2 *bool
-	bb2 := ToBool(b2)
+	bb2 := MakeBool(b2)
 	if bb2.Valid {
 		t.Errorf("expected not valid, got %v", bb2.Valid)
 	}
@@ -898,7 +898,7 @@ func TestToNullBool(t *testing.T) {
 }
 func TestToNullInt64(t *testing.T) {
 	b := int64(123)
-	bb := ToInt64(&b)
+	bb := MakeInt64(&b)
 	if !bb.Valid {
 		t.Errorf("expected valid, got %v", bb.Valid)
 	}
@@ -907,7 +907,7 @@ func TestToNullInt64(t *testing.T) {
 	}
 
 	var b2 *int64
-	bb2 := ToInt64(b2)
+	bb2 := MakeInt64(b2)
 	if bb2.Valid {
 		t.Errorf("expected not valid, got %v", bb2.Valid)
 	}
@@ -918,7 +918,7 @@ func TestToNullInt64(t *testing.T) {
 
 func TestToNullFloat64(t *testing.T) {
 	b := 123.123
-	bb := ToFloat64(&b)
+	bb := MakeFloat64(&b)
 	if !bb.Valid {
 		t.Errorf("expected valid, got %v", bb.Valid)
 	}
@@ -927,7 +927,7 @@ func TestToNullFloat64(t *testing.T) {
 	}
 
 	var b2 *float64
-	bb2 := ToFloat64(b2)
+	bb2 := MakeFloat64(b2)
 	if bb2.Valid {
 		t.Errorf("expected not valid, got %v", bb2.Valid)
 	}
@@ -937,7 +937,7 @@ func TestToNullFloat64(t *testing.T) {
 }
 func TestToNullString(t *testing.T) {
 	b := "qwe"
-	bb := ToString(&b)
+	bb := MakeString(&b)
 	if !bb.Valid {
 		t.Errorf("expected valid, got %v", bb.Valid)
 	}
@@ -946,7 +946,7 @@ func TestToNullString(t *testing.T) {
 	}
 
 	var b2 *string
-	bb2 := ToString(b2)
+	bb2 := MakeString(b2)
 	if bb2.Valid {
 		t.Errorf("expected not valid, got %v", bb2.Valid)
 	}
@@ -956,7 +956,7 @@ func TestToNullString(t *testing.T) {
 }
 func TestToTime(t *testing.T) {
 	tim := time.Now()
-	bb := ToTime(tim)
+	bb := MakeTime(tim)
 	if !bb.Valid {
 		t.Errorf("expected valid, got %v", bb.Valid)
 	}
@@ -965,7 +965,7 @@ func TestToTime(t *testing.T) {
 	}
 
 	tim = time.Time{}
-	bb = ToTime(tim)
+	bb = MakeTime(tim)
 	if bb.Valid {
 		t.Errorf("expected invalid, got %v", bb.Valid)
 	}

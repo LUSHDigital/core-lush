@@ -53,7 +53,7 @@ func (n *Time) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Scan for Time
+// Scan implements the Scanner interface from database/sql
 func (n *Time) Scan(src interface{}) error {
 	// Set initial state for subsequent scans.
 	n.Valid = false

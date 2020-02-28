@@ -29,7 +29,7 @@ func (n *RawJSON) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// Scan for String
+// Scan implements the Scanner interface from database/sql
 func (n *RawJSON) Scan(src interface{}) error {
 	var a sql.NullString
 	if err := a.Scan(src); err != nil {
