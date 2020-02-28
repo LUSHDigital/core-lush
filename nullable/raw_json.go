@@ -18,11 +18,6 @@ func (n RawJSON) MarshalJSON() ([]byte, error) {
 	return a.MarshalJSON()
 }
 
-// Value for String
-func (n RawJSON) Value() (driver.Value, error) {
-	return string(n), nil
-}
-
 // UnmarshalJSON for String
 func (n *RawJSON) UnmarshalJSON(b []byte) error {
 	var a json.RawMessage
@@ -44,3 +39,9 @@ func (n *RawJSON) Scan(src interface{}) error {
 	*n = jsn
 	return nil
 }
+
+// Value returns the database/sql driver value for RawJson
+func (n RawJSON) Value() (driver.Value, error) {
+	return string(n), nil
+}
+

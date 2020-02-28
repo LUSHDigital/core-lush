@@ -23,14 +23,6 @@ func (n Int64) MarshalJSON() ([]byte, error) {
 	return json.Marshal(a)
 }
 
-// Value for Int64
-func (n Int64) Value() (driver.Value, error) {
-	if !n.Valid {
-		return nil, nil
-	}
-	return n.Int64, nil
-}
-
 // UnmarshalJSON for Int64
 func (n *Int64) UnmarshalJSON(b []byte) error {
 	if bytes.EqualFold(b, nullLiteral) {
@@ -56,4 +48,12 @@ func (n *Int64) Scan(src interface{}) error {
 		n.Valid = true
 	}
 	return nil
+}
+
+// Value returns the database/sql driver value for Int64
+func (n Int64) Value() (driver.Value, error) {
+	if !n.Valid {
+		return nil, nil
+	}
+	return n.Int64, nil
 }

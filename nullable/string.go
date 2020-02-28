@@ -34,14 +34,6 @@ func (n *String) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-// Value for String
-func (n String) Value() (driver.Value, error) {
-	if !n.Valid {
-		return nil, nil
-	}
-	return n.String, nil
-}
-
 // Scan for String
 func (n *String) Scan(src interface{}) error {
 	// Set initial state for subsequent scans.
@@ -56,4 +48,12 @@ func (n *String) Scan(src interface{}) error {
 		n.Valid = true
 	}
 	return nil
+}
+
+// Value returns the database/sql driver value for String
+func (n String) Value() (driver.Value, error) {
+	if !n.Valid {
+		return nil, nil
+	}
+	return n.String, nil
 }

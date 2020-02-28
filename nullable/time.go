@@ -24,14 +24,6 @@ func (n Time) MarshalJSON() ([]byte, error) {
 	return json.Marshal(a)
 }
 
-// Value for Time
-func (n Time) Value() (driver.Value, error) {
-	if !n.Valid {
-		return nil, nil
-	}
-	return n.Time, nil
-}
-
 // UnmarshalJSON for Time
 func (n *Time) UnmarshalJSON(b []byte) error {
 	s := string(b)
@@ -75,4 +67,12 @@ func (n *Time) Scan(src interface{}) error {
 		n.Valid = true
 	}
 	return nil
+}
+
+// Value returns the database/sql driver value for Time
+func (n Time) Value() (driver.Value, error) {
+	if !n.Valid {
+		return nil, nil
+	}
+	return n.Time, nil
 }

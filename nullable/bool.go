@@ -22,14 +22,6 @@ func (n Bool) MarshalJSON() ([]byte, error) {
 	return json.Marshal(a)
 }
 
-// Value for Bool
-func (n Bool) Value() (driver.Value, error) {
-	if !n.Valid {
-		return nil, nil
-	}
-	return n.Bool, nil
-}
-
 // UnmarshalJSON for Bool
 func (n *Bool) UnmarshalJSON(b []byte) error {
 	var field *bool
@@ -56,3 +48,12 @@ func (n *Bool) Scan(src interface{}) error {
 	}
 	return nil
 }
+
+// Value returns the database/sql driver value for Bool
+func (n Bool) Value() (driver.Value, error) {
+	if !n.Valid {
+		return nil, nil
+	}
+	return n.Bool, nil
+}
+

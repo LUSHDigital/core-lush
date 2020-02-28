@@ -4,9 +4,6 @@ import (
 	"time"
 )
 
-// StdTime provides default SQL TIME format
-const StdTime = "15:04:05"
-
 // emptyTime allows default times to be considered
 // null for insertion into the database.
 var emptyTime = time.Time{}
