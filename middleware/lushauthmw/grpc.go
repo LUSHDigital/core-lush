@@ -103,11 +103,17 @@ func InterceptServerJWT(ctx context.Context, broker CopierRenewer) (lushauth.Con
 	return claims.Consumer, nil
 }
 
-func handleInterceptError(err error) {
+func handleInterceptError(err error) error {
 	switch err {
-	case ErrMetadataMissing, ErrAuthTokenMissing:
+	case nil:
+		return nil
+	case
+		ErrMetadataMissing,
+		ErrAuthTokenMissing:
+		return nil
 	default:
 		log.Printf("grpc auth middleware error: %v\n", err)
+		return err
 	}
 }
 
@@ -115,8 +121,8 @@ func handleInterceptError(err error) {
 func UnaryServerInterceptor(broker CopierRenewer) func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		consumer, err := InterceptServerJWT(ctx, broker)
-		if err != nil {
-			handleInterceptError(err)
+		if err := handleInterceptError(err); err != nil {
+			return nil, err
 		}
 		resp, err := handler(lushauth.ContextWithConsumer(ctx, consumer), req)
 		return resp, err
@@ -127,8 +133,8 @@ func UnaryServerInterceptor(broker CopierRenewer) func(ctx context.Context, req 
 func StreamServerInterceptor(broker CopierRenewer) func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		consumer, err := InterceptServerJWT(ss.Context(), broker)
-		if err != nil {
-			handleInterceptError(err)
+		if err := handleInterceptError(err); err != nil {
+			return err
 		}
 		err = handler(srv, &authenticatedServerStream{ss, consumer})
 		return err

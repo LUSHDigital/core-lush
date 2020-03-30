@@ -11,6 +11,7 @@ import (
 	"github.com/LUSHDigital/core/test"
 	"github.com/LUSHDigital/core/workers/keybroker/keybrokermock"
 	"github.com/LUSHDigital/uuid"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -47,6 +48,72 @@ func TestGRPCMiddleware(t *testing.T) {
 	middleware.ChainUnaryClient(
 		lushauthmw.UnaryClientInterceptor(token),
 	)
+}
+
+var (
+	ok = grpc.UnaryHandler(func(ctx context.Context, req interface{}) (interface{}, error) {
+		return nil, nil
+	})
+	fail = grpc.UnaryHandler(func(ctx context.Context, req interface{}) (interface{}, error) {
+		return nil, status.New(codes.Internal, "request failed").Err()
+	})
+)
+
+func TestUnaryServerInterceptor(t *testing.T) {
+	broker := keybrokermock.MockRSAPublicKey(public)
+	cases := []struct {
+		name    string
+		tokens  []string
+		handler grpc.UnaryHandler
+		errors  bool
+		message string
+		code    codes.Code
+	}{
+		{
+			name:    "no token",
+			tokens:  nil,
+			handler: ok,
+			code:    codes.OK,
+			errors:  false,
+		},
+		{
+			name:    "empty token",
+			tokens:  []string{""},
+			handler: ok,
+			errors:  true,
+			code:    codes.InvalidArgument,
+			message: "token contains an invalid number of segments",
+		},
+		{
+			name:    "malformatted token",
+			tokens:  []string{"abcd123!"},
+			handler: ok,
+			errors:  true,
+			code:    codes.InvalidArgument,
+			message: "token contains an invalid number of segments",
+		},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			md := metadata.MD{}
+			if c.tokens != nil {
+				md.Set("auth-token", c.tokens...)
+			}
+			ctx := metadata.NewIncomingContext(context.Background(), md)
+			mw := lushauthmw.UnaryServerInterceptor(broker)
+			_, err := mw(ctx, nil, nil, ok)
+			if c.errors {
+				s, ok := status.FromError(err)
+				if !ok {
+					t.Errorf("unknown status from err: %v", err)
+				}
+				test.Equals(t, c.message, s.Message())
+				test.Equals(t, c.code, s.Code())
+			} else {
+				test.Equals(t, nil, err)
+			}
+		})
+	}
 }
 
 func TestInterceptServerJWT(t *testing.T) {
