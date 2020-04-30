@@ -31,7 +31,7 @@ const (
 func main() {
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
 
-	err, iso := getLatestISO4217()
+	iso, err := getLatestISO4217()
 	if err != nil {
 		log.Fatalf("could not get latest iso: %v", err)
 	}
@@ -45,7 +45,7 @@ func main() {
 		gen(currencies)
 	}
 }
-func getLatestISO4217() (err error, iso scaffold.ISO4217) {
+func getLatestISO4217() (iso scaffold.ISO4217, err error) {
 	res, err := http.Get(isoStdDownload)
 	if err != nil {
 		log.Fatal(err)
@@ -63,7 +63,7 @@ func getLatestISO4217() (err error, iso scaffold.ISO4217) {
 	if err = xml.Unmarshal(b, &iso); err != nil {
 		log.Fatal(err)
 	}
-	return err, iso
+	return iso, err
 }
 
 type currency struct {
