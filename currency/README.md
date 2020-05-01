@@ -9,21 +9,39 @@ Data is graciously provided by:
 
 ## Usage:
 
-```
+```go
 package main
 
+import (
+        "fmt"
+        "log"
+
+        "github.com/LUSHDigital/core-lush/currency"
+)
+
 func main() {
-	// Validation of codes.
-	ok := currency.Valid("ABC")
-	if !ok {
-		// whatever you need.
-	}
+        // Validation of codes.
+        if !currency.Valid("ABC") {
+                // whatever you need.
+        }
 
-	// easy to get the values
-	fmt.Println(currency.USD.Code())
-	// Output: USD
+        // easy to get the values
+        fmt.Println(currency.USD.Code())
+        // Output: USD
 
-	fmt.Println(currency.USD.MinorUnit())
-	// Output: 2
+        fmt.Println(currency.USD.MinorUnits())
+        // Output: 2
+
+        // Get a currency by it's code. 
+        // NOTE: Get is case insensitive.
+        c, err := currency.Get("GBP")
+        if err != nil {
+                log.Fatal(err)
+        }
+        
+        // retrieve factors
+        c.Factor()
+        c.FactorAsInt64()
+        c.FactorAsFloat64()
 }
 ``` 

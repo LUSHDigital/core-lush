@@ -65,9 +65,9 @@ func TestExchange(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			for i := 0; i < len(tt.values); i++ {
-				res := accounting.Exchange(tt.money, tt.values[i], tt.rates[i])
-				if !cmp.Equal(tt.want[i], res) {
-					t.Error(cmp.Diff(tt.want[i], t))
+				got := accounting.Exchange(tt.money, tt.values[i], tt.rates[i])
+				if diff := cmp.Diff(tt.want[i], got); diff != "" {
+					t.Errorf("Exchange() mismatch (-want +got):\n%s", diff)
 				}
 			}
 		})
@@ -124,8 +124,8 @@ func TestRatNetAmount(t *testing.T) {
 				t.Errorf("RatNetAmount() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !cmp.Equal(got.Text('f', 9), tt.want) {
-				t.Error(cmp.Diff(got.Text('f', 9), tt.want))
+			if diff := cmp.Diff(tt.want, got.Text('f', 9)); diff != "" {
+				t.Errorf("RatNetAmount() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
@@ -178,7 +178,7 @@ func TestValidateFloatIsPrecise(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := accounting.ValidateFloatIsPrecise(tt.amount)
-			if err != nil && !tt.wantError {
+			if (err != nil) != tt.wantError {
 				t.Fatalf(
 					"ValidateFloatIsPrecise: failed on %v",
 					tt.amount,
@@ -213,7 +213,7 @@ func TestValidateManyFloatsArePrecise(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := accounting.ValidateManyFloatsArePrecise(tt.amounts...)
-			if err != nil && !tt.wantError {
+			if (err != nil) != tt.wantError {
 				t.Fatalf("ValidateFloatIsPrecise: failed with %v", err)
 			}
 		})
@@ -281,10 +281,11 @@ func TestFuzzNetAmount(t *testing.T) {
 	for i := 0; i < 1e6; i++ {
 		var a args
 		fz.Fuzz(&a)
-
 		// we don't really care about the values here.
 		// we just want to prove that the function cannot panic.
-		_, _ = accounting.NetAmount(a.Gross, a.Rate)
+		netAmount, err := accounting.NetAmount(a.Gross, a.Rate)
+		useInt64(netAmount)
+		useError(err)
 	}
 }
 
@@ -306,7 +307,9 @@ func TestFuzzTaxAmount(t *testing.T) {
 
 		// we don't really care about the values here.
 		// we just want to prove that the function cannot panic.
-		_, _ = accounting.TaxAmount(a.Gross, a.Net)
+		taxAmount, taxAmountError := accounting.TaxAmount(a.Gross, a.Net)
+		useInt64(taxAmount)
+		useError(taxAmountError)
 	}
 }
 
@@ -1326,3 +1329,12 @@ var minorUnitTestsCases = []struct {
 		i64:  -10010,
 	},
 }
+
+//go:noinline
+func useInt64(i int64) {}
+
+//go:noinline
+func useFloat64(f float64) {}
+
+//go:noinline
+func useError(e error) {}

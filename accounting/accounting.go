@@ -42,14 +42,14 @@ func ValidateManyFloatsArePrecise(args ...float64) error {
 }
 
 // ValidateFloatIsPrecise ensures that a float64 value does not exceed
-// a precision of 2 digits past the dot. This ensures we do not
+// a precision of 2 digits past the decimal period. This ensures we do not
 // store incorrect currency data.
-// NOTE: 2 digits past the dot is a business rule.
+// NOTE: 2 digits past the decimal period is a business rule.
 func ValidateFloatIsPrecise(f float64) error {
 	// parse the float, with the smallest number of digits necessary
 	parsed := strconv.FormatFloat(f, 'f', -1, 64)
 
-	// split the parsed number on the dot
+	// split the parsed number on the decimal period
 	parts := strings.Split(parsed, ".")
 
 	// in case of exact number...
