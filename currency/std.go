@@ -5,7 +5,10 @@ package currency
 |          DO NOT EDIT           |
 +-------------------------------*/
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // Currency defines a currency containing
 // It's code, taken from the constants above
@@ -52,7 +55,7 @@ func Get(code string) (Currency, error) {
 // inside the provided ValidCodes slice
 func Valid(code string) bool {
 	for _, c := range ValidCodes {
-		if c == code {
+		if strings.EqualFold(c, code) {
 			return true
 		}
 	}
