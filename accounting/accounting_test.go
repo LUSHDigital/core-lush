@@ -135,8 +135,8 @@ func TestToMinorUnit(t *testing.T) {
 	for _, tt := range minorUnitTestsCases {
 		t.Run(tt.name, func(t *testing.T) {
 			i := accounting.ToMinorUnit(currency.GBP, tt.f64)
-			if !cmp.Equal(i, tt.i64) {
-				t.Error(cmp.Diff(i, tt.i64))
+			if diff := cmp.Diff(tt.i64, i); diff != "" {
+				t.Errorf("ToMinorUnit() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
@@ -146,8 +146,8 @@ func TestFromMinorUnit(t *testing.T) {
 	for _, tt := range minorUnitTestsCases {
 		t.Run(tt.name, func(t *testing.T) {
 			f := accounting.FromMinorUnit(currency.GBP, tt.i64)
-			if !cmp.Equal(f, tt.f64) {
-				t.Error(cmp.Diff(f, tt.f64))
+			if diff := cmp.Diff(tt.f64, f); diff != "" {
+				t.Errorf("FromMinorUnit() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
@@ -262,8 +262,8 @@ func TestNetAmount(t *testing.T) {
 				t.Errorf("NetAmount() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !cmp.Equal(got, tt.want) {
-				t.Error(cmp.Diff(got, tt.want))
+			if diff := cmp.Diff(tt.want, got); diff != "" {
+				t.Errorf("NetAmount() mismatch (-want +got):\n%s", diff)
 			}
 		})
 	}
