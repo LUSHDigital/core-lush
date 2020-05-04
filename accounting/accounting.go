@@ -1,6 +1,7 @@
 package accounting
 
 import (
+	"fmt"
 	"math"
 	"math/big"
 	"strconv"
@@ -27,6 +28,39 @@ var (
 	// Baseline for creating a rate divisor.
 	base = itof(1)
 )
+
+// Amount defines an amount in a given currency, in it's minor unit form.
+type Amount struct {
+	Currency   currency.Currency
+	MinorValue int64
+}
+
+// MakeAmount returns an Amount from the provided currency and minor unit value.
+func MakeAmount(c currency.Currency, minorValue int64) Amount {
+	return Amount{
+		Currency:   c,
+		MinorValue: minorValue,
+	}
+}
+
+// String implements a default stringer for an Amount
+// Note that the string will be in "human readable" format, rather than
+// using the minor currency unit, this converstion is done using the
+// AmountToFloat64 function, also available within this package.
+// ISO_4217 does not regulate spacing or prefixing vs. suffixing.
+// Strings produced usint this method always follow this pattern:
+//
+//     ┏━━ always decimal dot separated.
+//     ┃
+//  123.45 GBP
+//      ┃  ┗━━ ISO currency code.
+//      ┗━━ maximum 2 digits precision.
+//
+func (a Amount) String() string {
+	f64 := AmountToFloat64(a)
+	format := fmt.Sprintf("%%.%df %%s", a.Currency.MinorUnits())
+	return fmt.Sprintf(format, f64, a.Currency.Code())
+}
 
 // ValidateManyFloatsArePrecise tests that the given float64 arguments
 // have the desired precision, this is a convenience wrapper
@@ -67,21 +101,25 @@ func ValidateFloatIsPrecise(f float64) error {
 	return nil
 }
 
-// ToMinorUnit returns the currency data in it's minor unit, int64 format
-func ToMinorUnit(c currency.Currency, value float64) int64 {
-	return int64(math.Round(value * float64(c.Factor())))
+// Float64ToAmount returns an amount from the provided currency and value.
+func Float64ToAmount(c currency.Currency, value float64) Amount {
+	minor := int64(math.Round(value * float64(c.Factor())))
+	return Amount{
+		Currency:   c,
+		MinorValue: minor,
+	}
 }
 
-// FromMinorUnit returns the currency data as a floating point from it's
+// AmountToFloat64 returns the currency data as a floating point from it's
 // minor currency unit format.
-func FromMinorUnit(c currency.Currency, value int64) float64 {
+func AmountToFloat64(amount Amount) float64 {
 	// fast path for currencies like JPY with a factor of 1.
-	if c.Factor() == 1 {
-		return float64(value)
+	if amount.Currency.Factor() == 1 {
+		return float64(amount.MinorValue)
 	}
 	var (
-		v = itof(value)
-		f = ftof(c.FactorAsFloat64())
+		v = itof(amount.MinorValue)
+		f = ftof(amount.Currency.FactorAsFloat64())
 	)
 	f64, _ := newf().Quo(v, f).Float64()
 	return f64
@@ -89,35 +127,34 @@ func FromMinorUnit(c currency.Currency, value int64) float64 {
 
 // Exchange - Apply currency exchange rates to an amount.
 //
-// value - should always be given in the minor currency unit.
-// exchange - should always be given from the approved finance list.
+// rate - should always be given from the approved finance list.
 //
 // Rounding to the nearest even is a defined business rule.
 // Tills may round up to the nearest penny, but for reporting, the rule is
 // always to use banker's rounding.
 //
 // If unclear, see: // http://wiki.c2.com/?BankersRounding.
-func Exchange(c currency.Currency, value, exchange float64) float64 {
+func Exchange(amount Amount, c currency.Currency, rate float64) Amount {
 	// this can happen for example when dealing
 	// with a GBP->GBP exchange, for example.
-	if exchange == 0 {
-		exchange = 1
+	if rate == 0 {
+		rate = 1
 	}
 
-	var (
-		v = ftof(value)
-		f = ftof(c.FactorAsFloat64())
-		e = ftof(exchange)
-	)
+	from := ftof(AmountToFloat64(amount))
+	bigRate := ftof(rate)
+	factor := ftof(amount.Currency.FactorAsFloat64())
+
 	// Here we divide the value, by it's minor currency
 	// unit factor, then divide it once more by the
 	// exchange rate.
 	// -> v / f / e
-	f64, _ := v.Quo(v, f).Quo(v, e).Float64()
-
-	// basic banker's rounding
+	to, _ := from.Quo(from, factor).Quo(from, bigRate).Float64()
 	// http://wiki.c2.com/?BankersRounding
-	return math.RoundToEven(f64*100) / 100
+	to = math.RoundToEven(to*100) / 100
+
+	return Float64ToAmount(c, to)
+	// basic banker's rounding
 }
 
 // RatNetAmount applies a VAT rate to a big.Rat value. This method returns a big.Float
@@ -149,25 +186,16 @@ func RatNetAmount(gross, rate *big.Rat) (*big.Float, error) {
 
 // NetAmount derives the net amount before tax is applied using the given rate.
 func NetAmount(gross int64, rate float64) (int64, error) {
-	// Coerce the amount and rate into big floats to perform accurate calculations.
-	g := itof(gross)
-	r := ftof(rate)
-	// Guard against impossible (negative) tax rates.
-	switch r.Cmp(min) {
-	case -1:
-		return 0, ErrSubZeroRate
-	case 0:
-		return gross, nil
+	grossRat, _ := itof(gross).Rat(nil)
+	rateRat, _ := ftof(rate).Rat(nil)
+
+	bf, err := RatNetAmount(grossRat, rateRat)
+	if err != nil {
+		return 0, err
 	}
-	// Turn the rate into a divisor by making it superior to 1.
-	divisor := newf().Add(base, r)
-	// The net amount must be:
-	// amount / (rate + 1)
-	netFloat := newf().Quo(g, divisor)
-	// To avoid integer rounding errors we pass the float into a string first then cast to an integer.
-	netStr := netFloat.Text('f', 0)
+
+	netStr := bf.Text('f', 0)
 	net, _ := new(big.Int).SetString(netStr, 10)
-	// Derive the integer value of the net amount
 	return net.Int64(), nil
 }
 

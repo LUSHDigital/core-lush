@@ -8,13 +8,27 @@ import (
 	"github.com/LUSHDigital/core-lush/accounting"
 	"github.com/LUSHDigital/core-lush/currency"
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/gofuzz"
+	fuzz "github.com/google/gofuzz"
 )
 
+func TestAmount_String(t *testing.T) {
+	t.Run("GBP", func(t *testing.T) {
+		got := accounting.MakeAmount(currency.GBP, 1234).String()
+		want := "12.34 GBP"
+		if diff := cmp.Diff(got, want); diff != "" {
+			t.Fatalf("failed (-got +want): %s", diff)
+		}
+	})
+	t.Run("JPY", func(t *testing.T) {
+		got := accounting.MakeAmount(currency.JPY, 1234).String()
+		want := "1234 JPY"
+		if diff := cmp.Diff(got, want); diff != "" {
+			t.Fatalf("failed (-got +want): %s", diff)
+		}
+	})
+}
+
 func TestExchange(t *testing.T) {
-	// All possible minor currency units sampled from the currency
-	// package are in use in this suite.
-	//
 	// factors of 1, 100, 1000 and 10000 are represented.
 	//
 	// As there is no point in duplicating tests for currencies with
@@ -27,35 +41,40 @@ func TestExchange(t *testing.T) {
 	// Each value in the want array has been calculated manually.
 	tests := []struct {
 		name   string
-		money  currency.Currency
+		from   currency.Currency
+		to     currency.Currency
 		values [4]float64
 		rates  [4]float64
 		want   [4]float64
 	}{
 		{
 			name:   "Japanese yen, factor 1",
-			money:  currency.JPY,
+			from:   currency.JPY,
+			to:     currency.GBP,
 			values: [4]float64{100, 1000, 10000, 1999},
-			rates:  [4]float64{1, 1.5, 145.961337, 145.961337},
-			want:   [4]float64{100, 666.67, 68.51, 13.70},
+			rates:  [4]float64{1, 132.73, 145.961337, 145.961337},
+			want:   [4]float64{100, 7.53, 68.51, 13.70},
 		},
 		{
 			name:   "Zimbabwean dollar, factor 100",
-			money:  currency.ZWL,
+			from:   currency.ZWL,
+			to:     currency.GBP,
 			values: [4]float64{100, 1000, 10000, 19999.99},
 			rates:  [4]float64{1, 1.5, 469.167, 469.167},
 			want:   [4]float64{1, 6.67, 0.21, 0.43},
 		},
 		{
 			name:   "Tunisian dinar, factor 1000",
-			money:  currency.TND,
+			from:   currency.TND,
+			to:     currency.GBP,
 			values: [4]float64{100, 1000, 10000, 1999.99},
 			rates:  [4]float64{1, 1.5, 3.714896, 3.714896},
 			want:   [4]float64{0.1, 0.67, 2.69, 0.54},
 		},
 		{
 			name:   "Uruguayan centésimos, factor 10000",
-			money:  currency.UYW,
+			from:   currency.UYW,
+			to:     currency.GBP,
 			values: [4]float64{100, 1000, 10000, 1999999.99},
 			rates:  [4]float64{1, 1.5, 42.530333, 42.530333},
 			want:   [4]float64{0.01, 0.07, 0.02, 4.70},
@@ -65,8 +84,11 @@ func TestExchange(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			for i := 0; i < len(tt.values); i++ {
-				got := accounting.Exchange(tt.money, tt.values[i], tt.rates[i])
-				if diff := cmp.Diff(tt.want[i], got); diff != "" {
+				from := accounting.Float64ToAmount(tt.from, tt.values[i])
+				amount := accounting.MakeAmount(tt.from, from.MinorValue)
+
+				got := accounting.Exchange(amount, tt.to, tt.rates[i])
+				if diff := cmp.Diff(tt.want[i], accounting.AmountToFloat64(got)); diff != "" {
 					t.Errorf("Exchange() mismatch (-want +got):\n%s", diff)
 				}
 			}
@@ -134,8 +156,9 @@ func TestRatNetAmount(t *testing.T) {
 func TestToMinorUnit(t *testing.T) {
 	for _, tt := range minorUnitTestsCases {
 		t.Run(tt.name, func(t *testing.T) {
-			i := accounting.ToMinorUnit(currency.GBP, tt.f64)
-			if diff := cmp.Diff(tt.i64, i); diff != "" {
+			amount := accounting.Float64ToAmount(currency.GBP, tt.f64)
+
+			if diff := cmp.Diff(tt.i64, amount.MinorValue); diff != "" {
 				t.Errorf("ToMinorUnit() mismatch (-want +got):\n%s", diff)
 			}
 		})
@@ -145,7 +168,9 @@ func TestToMinorUnit(t *testing.T) {
 func TestFromMinorUnit(t *testing.T) {
 	for _, tt := range minorUnitTestsCases {
 		t.Run(tt.name, func(t *testing.T) {
-			f := accounting.FromMinorUnit(currency.GBP, tt.i64)
+			amount := accounting.MakeAmount(currency.GBP, tt.i64)
+
+			f := accounting.AmountToFloat64(amount)
 			if diff := cmp.Diff(tt.f64, f); diff != "" {
 				t.Errorf("FromMinorUnit() mismatch (-want +got):\n%s", diff)
 			}
@@ -1332,9 +1357,6 @@ var minorUnitTestsCases = []struct {
 
 //go:noinline
 func useInt64(i int64) {}
-
-//go:noinline
-func useFloat64(f float64) {}
 
 //go:noinline
 func useError(e error) {}
