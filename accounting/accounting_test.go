@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/LUSHDigital/core-lush/accounting"
-	"github.com/LUSHDigital/core-lush/currency"
+	"github.com/LUSHDigital/core-lush/accounting/currency"
 	"github.com/google/go-cmp/cmp"
 	fuzz "github.com/google/gofuzz"
 )

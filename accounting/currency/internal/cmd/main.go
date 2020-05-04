@@ -15,7 +15,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/LUSHDigital/core-lush/currency/internal/cmd/scaffold"
+	"github.com/LUSHDigital/core-lush/accounting/currency/internal/cmd/scaffold"
 )
 
 const (

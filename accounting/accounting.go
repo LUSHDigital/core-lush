@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/LUSHDigital/core-lush/currency"
+	"github.com/LUSHDigital/core-lush/accounting/currency"
 )
 
 const (
