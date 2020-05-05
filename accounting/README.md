@@ -40,7 +40,10 @@ func main() {
 
         // Exchanging currencies is also supported.
         usd := accounting.Float64ToAmount(currency.USD, 100.0)
-        eur := accounting.Exchange(usd, currency.EUR, 1.08968)
+        eur, err := accounting.Exchange(usd, currency.EUR, 1.08968)
+        if err != nil {
+                // handle...
+        }
         fmt.Println(eur)
         // output: 91.77 EUR
 }
