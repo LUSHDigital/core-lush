@@ -11,6 +11,44 @@ import (
 	fuzz "github.com/google/gofuzz"
 )
 
+func ExampleFloat64ToAmount_gbp() {
+	gbp := accounting.Float64ToAmount(currency.GBP, 32.32)
+	fmt.Printf("minor value: %d, stringer: %s", gbp.MinorValue, gbp)
+	// output: minor value: 3232, stringer: 32.32 GBP
+}
+
+func ExampleFloat64ToAmount_jpy() {
+	// JPY doesn't allow for values after the decimal dot, since it has a
+	// minor currency unit of 1.
+	jpy := accounting.Float64ToAmount(currency.JPY, 32.32)
+	fmt.Printf("minor value: %d, stringer: %s", jpy.MinorValue, jpy)
+	// output: minor value: 32, stringer: 32 JPY
+}
+
+func ExampleExchange_usd_eur() {
+	// 4 May 2020 08:00 UTC - 5 May 2020 08:01 UTC
+	// EUR/USD close:1.08968 low:1.08871 high:1.09479
+	usd := accounting.Float64ToAmount(currency.USD, 100.0)
+	eur, err := accounting.Exchange(usd, currency.EUR, 1.08968)
+	if err != nil {
+		// handle...
+	}
+	fmt.Println(eur)
+	// output: 91.77 EUR
+}
+
+func ExampleExchange_usd_jpy() {
+	// 4 May 2020 07:40 UTC - 5 May 2020 07:40 UTC
+	// JPY/USD close:0.00937 low:0.00934 high:0.00939
+	usd := accounting.Float64ToAmount(currency.USD, 100.0)
+	jpy, err := accounting.Exchange(usd, currency.JPY, 0.00937)
+	if err != nil {
+		// handle...
+	}
+	fmt.Println(jpy)
+	// output: 10672 JPY
+}
+
 func TestAmount_String(t *testing.T) {
 	t.Run("GBP", func(t *testing.T) {
 		got := accounting.MakeAmount(currency.GBP, 1234).String()
@@ -40,55 +78,214 @@ func TestExchange(t *testing.T) {
 	//
 	// Each value in the want array has been calculated manually.
 	tests := []struct {
-		name   string
-		from   currency.Currency
-		to     currency.Currency
-		values [4]float64
-		rates  [4]float64
-		want   [4]float64
+		name        string
+		from        currency.Currency
+		to          currency.Currency
+		amount      float64
+		expected    float64
+		rate        float64
+		expectedErr error
 	}{
 		{
-			name:   "Japanese yen, factor 1",
-			from:   currency.JPY,
-			to:     currency.GBP,
-			values: [4]float64{100, 1000, 10000, 1999},
-			rates:  [4]float64{1, 132.73, 145.961337, 145.961337},
-			want:   [4]float64{100, 7.53, 68.51, 13.70},
+			name:     "100 USD in USD",
+			expected: 100,
+			rate:     1,
+			from:     currency.USD,
+			to:       currency.USD,
 		},
 		{
-			name:   "Zimbabwean dollar, factor 100",
-			from:   currency.ZWL,
-			to:     currency.GBP,
-			values: [4]float64{100, 1000, 10000, 19999.99},
-			rates:  [4]float64{1, 1.5, 469.167, 469.167},
-			want:   [4]float64{1, 6.67, 0.21, 0.43},
+			name:     "100 USD in EUR",
+			expected: 91.61,
+			rate:     1.0916,
+			from:     currency.USD,
+			to:       currency.EUR,
 		},
 		{
-			name:   "Tunisian dinar, factor 1000",
-			from:   currency.TND,
-			to:     currency.GBP,
-			values: [4]float64{100, 1000, 10000, 1999.99},
-			rates:  [4]float64{1, 1.5, 3.714896, 3.714896},
-			want:   [4]float64{0.1, 0.67, 2.69, 0.54},
+			name:     "100 USD in GBP",
+			expected: 80.51,
+			rate:     1.2421,
+			from:     currency.USD,
+			to:       currency.GBP,
 		},
 		{
-			name:   "Uruguayan centésimos, factor 10000",
-			from:   currency.UYW,
-			to:     currency.GBP,
-			values: [4]float64{100, 1000, 10000, 1999999.99},
-			rates:  [4]float64{1, 1.5, 42.530333, 42.530333},
-			want:   [4]float64{0.01, 0.07, 0.02, 4.70},
+			name:     "100 USD in JPY",
+			expected: 10678,
+			rate:     0.00936545,
+			from:     currency.USD,
+			to:       currency.JPY,
+		},
+		{
+			name:     "100 USD in TND",
+			expected: 290.02,
+			rate:     0.3448,
+			from:     currency.USD,
+			to:       currency.TND,
+		},
+		{
+			name:     "100 EUR in USD",
+			expected: 109.16,
+			rate:     0.9161,
+			from:     currency.EUR,
+			to:       currency.USD,
+		},
+		{
+			name:     "100 EUR in EUR",
+			expected: 100,
+			rate:     1,
+			from:     currency.EUR,
+			to:       currency.EUR,
+		},
+		{
+			name:     "100 EUR in GBP",
+			expected: 87.88,
+			rate:     1.1379,
+			from:     currency.EUR,
+			to:       currency.GBP,
+		},
+		{
+			name:     "100 EUR in JPY",
+			expected: 11628,
+			rate:     0.0086,
+			from:     currency.EUR,
+			to:       currency.JPY,
+		},
+		{
+			name:     "100 EUR in TND",
+			expected: 316.66,
+			rate:     0.3158,
+			from:     currency.EUR,
+			to:       currency.TND,
+		},
+		{
+			name:     "100 GBP in USD",
+			expected: 124.21,
+			rate:     0.8051,
+			from:     currency.GBP,
+			to:       currency.USD,
+		},
+		{
+			name:     "100 GBP in EUR",
+			expected: 113.79,
+			rate:     0.8788,
+			from:     currency.GBP,
+			to:       currency.EUR,
+		},
+		{
+			name:     "100 GBP in GBP",
+			expected: 100,
+			rate:     1,
+			from:     currency.GBP,
+			to:       currency.GBP,
+		},
+		{
+			name:     "100 GBP in JPY",
+			expected: 13333,
+			rate:     0.0075,
+			from:     currency.GBP,
+			to:       currency.JPY,
+		},
+		{
+			name:     "100 GBP in TND",
+			expected: 360.23,
+			rate:     0.2776,
+			from:     currency.GBP,
+			to:       currency.TND,
+		},
+		{
+			name:     "100 JPY in USD",
+			expected: 0.94,
+			rate:     106.9404,
+			from:     currency.JPY,
+			to:       currency.USD,
+		},
+		{
+			name:     "100 JPY in EUR",
+			expected: 0.86,
+			rate:     116.7394,
+			from:     currency.JPY,
+			to:       currency.EUR,
+		},
+		{
+			name:     "100 JPY in GBP",
+			expected: 0.75,
+			rate:     132.8351,
+			from:     currency.JPY,
+			to:       currency.GBP,
+		},
+		{
+			name:     "100 JPY in JPY",
+			expected: 100,
+			rate:     1,
+			from:     currency.JPY,
+			to:       currency.JPY,
+		},
+		{
+			name:     "100 JPY in TND",
+			expected: 2.71,
+			rate:     36.8696,
+			from:     currency.JPY,
+			to:       currency.TND,
+		},
+		{
+			name:     "100 TND in USD",
+			expected: 34.48,
+			rate:     2.9005,
+			from:     currency.TND,
+			to:       currency.USD,
+		},
+		{
+			name:     "100 TND in EUR",
+			expected: 31.58,
+			rate:     3.1663,
+			from:     currency.TND,
+			to:       currency.EUR,
+		},
+		{
+			name:     "100 TND in GBP",
+			expected: 27.76,
+			rate:     3.6028,
+			from:     currency.TND,
+			to:       currency.GBP,
+		},
+		{
+			name:     "100 TND in JPY",
+			expected: 3690,
+			rate:     0.0271,
+			from:     currency.TND,
+			to:       currency.JPY,
+		},
+		{
+			name:     "100 TND in TND",
+			expected: 100,
+			rate:     1,
+			from:     currency.TND,
+			to:       currency.TND,
+		},
+		{
+			name:        "Subzero exchange rate must fail",
+			expected:    100,
+			rate:        -1,
+			from:        currency.TND,
+			to:          currency.TND,
+			expectedErr: accounting.ErrSubZeroRate,
+		},
+		{
+			name:     "Zero rate should return zero amount",
+			expected: 0,
+			rate:     0,
+			from:     currency.TND,
+			to:       currency.TND,
 		},
 	}
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			for i := 0; i < len(tt.values); i++ {
-				from := accounting.Float64ToAmount(tt.from, tt.values[i])
-				amount := accounting.MakeAmount(tt.from, from.MinorValue)
-
-				got := accounting.Exchange(amount, tt.to, tt.rates[i])
-				if diff := cmp.Diff(tt.want[i], accounting.AmountToFloat64(got)); diff != "" {
+			amount := accounting.Float64ToAmount(tt.from, 100)
+			result, err := accounting.Exchange(amount, tt.to, tt.rate)
+			if tt.expectedErr != err {
+				t.Fatal("expected an error but got none")
+			}
+			if err == nil {
+				if diff := cmp.Diff(tt.expected, accounting.AmountToFloat64(result)); diff != "" {
 					t.Errorf("Exchange() mismatch (-want +got):\n%s", diff)
 				}
 			}
@@ -106,10 +303,10 @@ func TestRatNetAmount(t *testing.T) {
 		rate  *big.Rat
 	}
 	var tests = []struct {
-		name    string
-		args    args
-		want    string
-		wantErr bool
+		name        string
+		args        args
+		want        string
+		expectedErr error
 	}{
 		{
 			name: "gross 10 vat 19",
@@ -117,8 +314,7 @@ func TestRatNetAmount(t *testing.T) {
 				value: br(10),
 				rate:  br(.19),
 			},
-			want:    "8.403361345",
-			wantErr: false,
+			want: "8.403361345",
 		},
 		{
 			name: "gross 19.99 vat 20",
@@ -126,8 +322,7 @@ func TestRatNetAmount(t *testing.T) {
 				value: br(19.99),
 				rate:  br(.20),
 			},
-			want:    "16.658333333",
-			wantErr: false,
+			want: "16.658333333",
 		},
 		{
 			name: "gross 123 vat 7",
@@ -135,19 +330,37 @@ func TestRatNetAmount(t *testing.T) {
 				value: br(123),
 				rate:  br(.07),
 			},
-			want:    "114.953271028",
-			wantErr: false,
+			want: "114.953271028",
+		},
+		{
+			name: "Subzero rate should fail",
+			args: args{
+				value: br(123),
+				rate:  br(-1),
+			},
+			want:        "",
+			expectedErr: accounting.ErrSubZeroRate,
+		},
+		{
+			name: "Zero rate should return zero value",
+			args: args{
+				value: br(123),
+				rate:  br(0),
+			},
+			want:        "123.000000000",
+			expectedErr: nil,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := accounting.RatNetAmount(tt.args.value, tt.args.rate)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("RatNetAmount() error = %v, wantErr %v", err, tt.wantErr)
-				return
+			if err != tt.expectedErr {
+				t.Fatal("expected an error but got none")
 			}
-			if diff := cmp.Diff(tt.want, got.Text('f', 9)); diff != "" {
-				t.Errorf("RatNetAmount() mismatch (-want +got):\n%s", diff)
+			if err == nil {
+				if diff := cmp.Diff(tt.want, got.Text('f', 9)); diff != "" {
+					t.Errorf("RatNetAmount() mismatch (-want +got):\n%s", diff)
+				}
 			}
 		})
 	}
@@ -278,6 +491,22 @@ func TestNetAmount(t *testing.T) {
 			},
 			want:    7518,
 			wantErr: false,
+		},
+		{
+			args: args{
+				gross: 1234,
+				rate:  0.0,
+			},
+			want:    1234,
+			wantErr: false,
+		},
+		{
+			args: args{
+				gross: 1234,
+				rate:  -1.0,
+			},
+			want:    0,
+			wantErr: true,
 		},
 	}
 	for i, tt := range tests {
