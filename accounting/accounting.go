@@ -45,10 +45,10 @@ func MakeAmount(c currency.Currency, minorValue int64) Amount {
 
 // String implements a default stringer for an Amount
 // Note that the string will be in "human readable" format, rather than
-// using the minor currency unit, this converstion is done using the
+// using the minor currency unit, this conversion is done using the
 // AmountToFloat64 function, also available within this package.
 // ISO_4217 does not regulate spacing or prefixing vs. suffixing.
-// Strings produced usint this method always follow this pattern:
+// Strings produced using this method always follow this pattern:
 //
 //     ┏━━ always decimal dot separated.
 //     ┃
