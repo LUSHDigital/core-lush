@@ -45,10 +45,10 @@ func MakeAmount(c currency.Currency, minorValue int64) Amount {
 
 // String implements a default stringer for an Amount
 // Note that the string will be in "human readable" format, rather than
-// using the minor currency unit, this converstion is done using the
+// using the minor currency unit, this conversion is done using the
 // AmountToFloat64 function, also available within this package.
 // ISO_4217 does not regulate spacing or prefixing vs. suffixing.
-// Strings produced usint this method always follow this pattern:
+// Strings produced using this method always follow this pattern:
 //
 //     ┏━━ always decimal dot separated.
 //     ┃
@@ -128,33 +128,37 @@ func AmountToFloat64(amount Amount) float64 {
 // Exchange - Apply currency exchange rates to an amount.
 //
 // rate - should always be given from the approved finance list.
+// NOTE: A rate of zero will return the amount you put in, unchanged.
 //
 // Rounding to the nearest even is a defined business rule.
 // Tills may round up to the nearest penny, but for reporting, the rule is
 // always to use banker's rounding.
 //
 // If unclear, see: // http://wiki.c2.com/?BankersRounding.
-func Exchange(amount Amount, c currency.Currency, rate float64) Amount {
-	// this can happen for example when dealing
-	// with a GBP->GBP exchange, for example.
-	if rate == 0 {
-		rate = 1
+func Exchange(amount Amount, c currency.Currency, rate float64) (Amount, error) {
+	switch {
+	case rate < 0:
+		return Amount{}, ErrSubZeroRate
+	case rate == 0:
+		// Decomissioned currencies might trigger that case,
+		// but that should really not be the general rule.
+		return MakeAmount(c, 0), nil
 	}
 
 	from := ftof(AmountToFloat64(amount))
 	bigRate := ftof(rate)
-	factor := ftof(amount.Currency.FactorAsFloat64())
 
 	// Here we divide the value, by it's minor currency
 	// unit factor, then divide it once more by the
 	// exchange rate.
-	// -> v / f / e
-	to, _ := from.Quo(from, factor).Quo(from, bigRate).Float64()
+	// -> v / e
+	to, _ := from.Quo(from, bigRate).Float64()
+
 	// http://wiki.c2.com/?BankersRounding
+	// This part guarantees that we will not have more than 2 decimals after the dot.
 	to = math.RoundToEven(to*100) / 100
 
-	return Float64ToAmount(c, to)
-	// basic banker's rounding
+	return Float64ToAmount(c, to), nil
 }
 
 // RatNetAmount applies a VAT rate to a big.Rat value. This method returns a big.Float
