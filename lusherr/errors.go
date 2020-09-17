@@ -247,3 +247,33 @@ func (e NotAllowedError) Pin(frame runtime.Frame) error {
 	e.frame = frame
 	return e
 }
+
+// BadRequestError indicates that the server cannot or will not
+// process the request due to something that is perceived to be a client error.
+type BadRequestError struct {
+	frame runtime.Frame
+	inner error
+}
+
+func (e BadRequestError) Error() string {
+	if e.inner == nil {
+		return fmt.Sprintf("bad request")
+	}
+	return fmt.Sprintf("bad request: %v", e.inner)
+}
+
+// Unwrap the inner error.
+func (e BadRequestError) Unwrap() error {
+	return e.inner
+}
+
+// Locate the frame of the error.
+func (e BadRequestError) Locate() runtime.Frame {
+	return e.frame
+}
+
+// Pin the error to a caller frame.
+func (e BadRequestError) Pin(frame runtime.Frame) error {
+	e.frame = frame
+	return e
+}
