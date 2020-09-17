@@ -248,6 +248,14 @@ func (e NotAllowedError) Pin(frame runtime.Frame) error {
 	return e
 }
 
+// NewBadRequestError builds an error for when a client send a bad request.
+// e.g. a client sends a request that is missing a required field.
+func NewBadRequestError(inner error) error {
+	return BadRequestError{
+		frame: frame(1),
+		inner: inner,
+	}
+}
 // BadRequestError indicates that the server cannot or will not
 // process the request due to something that is perceived to be a client error.
 type BadRequestError struct {
